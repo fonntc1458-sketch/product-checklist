@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เช็ครายการสินค้า</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Inconsolata:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream:   #f5f0e8;
+  --warm:    #ede6d8;
+  --paper:   #faf7f2;
+  --ink:     #1c1917;
+  --ink2:    #44403c;
+  --muted:   #a8a29e;
+  --border:  #d6cec4;
+  --border2: #c8bfb4;
+  --rust:    #c2410c;
+  --rust-l:  #fed7aa;
+  --teal:    #0f766e;
+  --teal-l:  #ccfbf1;
+  --amber:   #d97706;
+  --amber-l: #fef3c7;
+  --done-bg: #f0fdf4;
+  --shadow:  rgba(28,25,23,0.08);
+}
+
+body {
+  font-family: 'Prompt', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ══ HEADER ══ */
+.header {
+  background: var(--ink);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: 34px; height: 34px;
+  background: var(--rust);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+
+.brand-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.brand-text span { color: #fb923c; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-chip {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 5px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+
+.chip-bar {
+  width: 80px; height: 6px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.chip-fill {
+  height: 100%;
+  background: #34d399;
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+.chip-num { font-family: 'Inconsolata', monospace; color: #34d399; font-weight: 600; }
+
+/* ══ BODY LAYOUT ══ */
+.body-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 28px 28px 120px;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ══ FORM PANEL ══ */
+.form-panel {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  position: sticky;
+  top: 80px;
+  box-shadow: 0 2px 16px var(--shadow);
+}
+
+.form-header {
+  background: var(--warm);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.form-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--ink2); letter-spacing: 0.3px; }
+.req { color: var(--rust); }
+
+input[type=text], input[type=number] {
+  font-family: 'Prompt', sans-serif;
+  font-size: 14px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  color: var(--ink);
+  padding: 9px 13px;
+  border-radius: 8px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+}
+
+.qty-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── Image Upload Zone ── */
+.upload-zone {
+  border: 2px dashed var(--border2);
+  border-radius: 10px;
+  background: var(--warm);
+  cursor: pointer;
+  text-align: center;
+  padding: 20px;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone:hover { border-color: var(--teal); background: #f0fdf9; }
+.upload-zone.has-image { padding: 0; border-style: solid; border-color: var(--teal); }
+.upload-zone input[type=file] { display: none; }
+
+.upload-placeholder { pointer-events: none; }
+.upload-placeholder .upload-icon { font-size: 28px; margin-bottom: 6px; }
+.upload-placeholder p { font-size: 13px; color: var(--ink2); font-weight: 500; }
+.upload-placeholder small { font-size: 11px; color: var(--muted); }
+
+#preview-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: none;
+  border-radius: 8px;
+}
+.upload-zone.has-image #preview-img { display: block; }
+.upload-zone.has-image .upload-placeholder { display: none; }
+
+.clear-img-btn {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 24px; height: 24px;
+  background: rgba(0,0,0,0.6);
+  border: none; border-radius: 50%;
+  color: #fff; font-size: 12px;
+  cursor: pointer; display: none;
+  align-items: center; justify-content: center;
+}
+.upload-zone.has-image .clear-img-btn { display: flex; }
+
+.btn-add {
+  font-family: 'Prompt', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--rust);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background .15s, transform .1s;
+}
+.btn-add:hover { background: #b93b0a; }
+.btn-add:active { transform: scale(0.97); }
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 20px 20px;
+}
+.stat-box {
+  background: var(--warm);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px;
+  text-align: center;
+}
+.stat-box .n {
+  font-family: 'Inconsolata', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+.stat-box .l { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.stat-box.total .n { color: var(--ink2); }
+.stat-box.done-s .n { color: var(--teal); }
+.stat-box.left-s .n { color: var(--amber); }
+
+/* ══ MAIN CONTENT ══ */
+.main-content { display: flex; flex-direction: column; gap: 16px; }
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
+}
+.search-box input {
+  padding-left: 38px;
+}
+.search-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.filter-group { display: flex; gap: 6px; }
+.fb {
+  font-family: 'Prompt', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border2);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.fb:hover { border-color: var(--teal); color: var(--teal); }
+.fb.act-all  { background: var(--ink); border-color: var(--ink); color: #fff; }
+.fb.act-done { background: var(--teal); border-color: var(--teal); color: #fff; }
+.fb.act-pend { background: var(--amber); border-color: var(--amber); color: #fff; }
+
+.action-btns { display: flex; gap: 8px; }
+.btn-xs {
+  font-family: 'Prompt', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border2);
+  background: #fff;
+  color: var(--ink2);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: all .15s;
+}
+.btn-xs:hover { border-color: var(--ink); }
+
+/* ══ CARD GRID ══ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* ══ PRODUCT CARD ══ */
+.p-card {
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px var(--shadow);
+  transition: transform .15s, box-shadow .15s;
+  display: flex;
+  flex-direction: column;
+}
+.p-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
+.p-card.done-card { opacity: 0.55; border-color: #a7f3d0; background: var(--done-bg); }
+
+/* Card image */
+.card-img-wrap {
+  width: 100%;
+  height: 150px;
+  background: var(--warm);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+.card-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.no-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 30px;
+  gap: 6px;
+}
+.no-img-placeholder span { font-size: 12px; }
+
+/* Card check overlay */
+.card-check-overlay {
+  position: absolute;
+  top: 8px; left: 8px;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.9);
+  border: 2px solid var(--border2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+  backdrop-filter: blur(4px);
+}
+.card-check-overlay:hover { border-color: var(--teal); }
+.card-check-overlay.checked {
+  background: var(--teal);
+  border-color: var(--teal);
+  box-shadow: 0 0 8px rgba(15,118,110,0.4);
+}
+.card-check-overlay svg { display: none; }
+.card-check-overlay.checked svg { display: block; }
+
+/* Status ribbon */
+.ribbon {
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+.ribbon.pending { background: rgba(255,255,255,0.9); color: var(--amber); border: 1px solid var(--amber); }
+.ribbon.done    { background: rgba(255,255,255,0.9); color: var(--teal); border: 1px solid var(--teal); }
+
+/* Card body */
+.card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.card-product {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.done-card .card-product { text-decoration: line-through; }
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+.meta-icon { width: 16px; text-align: center; font-size: 13px; flex-shrink: 0; }
+.meta-val { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.qty-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--warm);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.note-row {
+  font-size: 11px;
+  color: var(--amber);
+  background: var(--amber-l);
+  border-radius: 6px;
+  padding: 4px 8px;
+  display: flex; align-items: center; gap: 5px;
+}
+.note-row.hidden { display: none; }
+
+/* Card footer */
+.card-footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.icon-btn {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  transition: all .15s;
+  color: var(--muted);
+}
+.icon-btn:hover { border-color: var(--rust); color: var(--rust); }
+
+/* ══ EMPTY STATE ══ */
+.empty-state {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--muted);
+}
+.empty-big { font-size: 56px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 17px; font-weight: 600; color: var(--ink2); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; }
+
+/* ══ MODAL ══ */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(28,25,23,0.6);
+  z-index: 500; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.overlay.open { display: flex; }
+
+.modal {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: popIn .2s ease;
+}
+@keyframes popIn { from { opacity:0; transform:scale(.93); } to { opacity:1; transform:scale(1); } }
+
+.modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.modal p { font-size: 13px; color: var(--ink2); line-height: 1.6; margin-bottom: 20px; }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.btn-cancel2 {
+  font-family: 'Prompt', sans-serif; font-size: 13px; font-weight: 600;
+  padding: 8px 18px; border-radius: 8px; border: 1.5px solid var(--border2);
+  background: #fff; color: var(--ink2); cursor: pointer;
+}
+.btn-del {
+  font-family: 'Prompt', sans-serif; font-size: 13px; font-weight: 700;
+  padding: 8px 18px; border-radius: 8px; border: none;
+  background: var(--rust); color: #fff; cursor: pointer;
+}
+
+/* ══ TOAST ══ */
+.toasts {
+  position: fixed; top: 72px; right: 20px;
+  z-index: 999; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--ink);
+  border-left: 4px solid var(--teal);
+  border-radius: 9px;
+  padding: 11px 16px;
+  font-size: 13px;
+  color: #fff;
+  display: flex; align-items: center; gap: 10px;
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  animation: slideR .25s ease;
+}
+.toast.err { border-color: var(--rust); }
+@keyframes slideR { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
+
+/* ══ STICKY FOOTER BAR ══ */
+.footer-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--ink);
+  border-top: 2px solid #292524;
+  padding: 12px 32px;
+  display: flex; align-items: center; gap: 24px;
+  z-index: 100;
+}
+.fb-stat { display: flex; flex-direction: column; align-items: center; }
+.fb-num { font-family: 'Inconsolata', monospace; font-size: 20px; font-weight: 600; color: #fff; line-height: 1; }
+.fb-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.fb-num.green { color: #34d399; }
+.fb-num.amber { color: #fbbf24; }
+.fb-progress {
+  flex: 1;
+  height: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.fb-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0f766e, #34d399);
+  border-radius: 5px;
+  transition: width .4s ease;
+}
+.fb-pct { font-family: 'Inconsolata', monospace; font-size: 18px; font-weight: 600; color: #34d399; min-width: 48px; text-align: right; }
+.divv { width: 1px; height: 32px; background: rgba(255,255,255,0.1); }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width: 860px) {
+  .body-wrap { grid-template-columns: 1fr; padding: 16px 16px 120px; }
+  .form-panel { position: static; }
+  .card-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="brand">
+    <div class="brand-icon">📦</div>
+    <div class="brand-text">สินค้า<span>เช็ค</span></div>
+  </div>
+  <div class="header-right">
+    <div class="progress-chip">
+      <span id="h-done-lbl">0/0</span>
+      <div class="chip-bar"><div class="chip-fill" id="h-fill" style="width:0%"></div></div>
+      <span class="chip-num" id="h-pct">0%</span>
+    </div>
+  </div>
+</header>
+
+<!-- BODY -->
+<div class="body-wrap">
+
+  <!-- FORM -->
+  <aside>
+    <div class="form-panel">
+      <div class="form-header">➕ เพิ่มรายการสินค้า</div>
+      <div class="form-body">
+
+        <!-- Image Upload -->
+        <div class="field">
+          <label>รูปภาพสินค้า</label>
+          <div class="upload-zone" id="upload-zone" onclick="triggerUpload()">
+            <input type="file" id="file-input" accept="image/*" onchange="handleFile(event)">
+            <img id="preview-img" src="" alt="preview">
+            <button class="clear-img-btn" onclick="clearImg(event)">✕</button>
+            <div class="upload-placeholder">
+              <div class="upload-icon">🖼️</div>
+              <p>คลิกหรือลากรูปมาวาง</p>
+              <small>JPG, PNG, WEBP</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>ชื่อสินค้า <span class="req">*</span></label>
+          <input id="inp-product" type="text" placeholder="ชื่อสินค้า">
+        </div>
+
+        <div class="qty-row">
+          <div class="field">
+            <label>จำนวน <span class="req">*</span></label>
+            <input id="inp-qty" type="number" min="1" value="1">
+          </div>
+          <div class="field">
+            <label>หน่วย</label>
+            <input id="inp-unit" type="text" placeholder="ชิ้น / กล่อง">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>ชื่อผู้รับสินค้า <span class="req">*</span></label>
+          <input id="inp-recipient" type="text" placeholder="ชื่อ - นามสกุล">
+        </div>
+
+        <div class="field">
+          <label>หมายเหตุ</label>
+          <input id="inp-note" type="text" placeholder="เช่น แตกง่าย / ห่อของขวัญ">
+        </div>
+
+        <button class="btn-add" onclick="addItem()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          เพิ่มรายการ
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-box total"><div class="n" id="s-total">0</div><div class="l">ทั้งหมด</div></div>
+        <div class="stat-box done-s"><div class="n" id="s-done">0</div><div class="l">เช็คแล้ว</div></div>
+        <div class="stat-box left-s"><div class="n" id="s-left">0</div><div class="l">รอเช็ค</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search" placeholder="ค้นหาสินค้า / ผู้รับ..." oninput="render()">
+      </div>
+      <div class="filter-group">
+        <button class="fb act-all" onclick="setF('all',this)">ทั้งหมด</button>
+        <button class="fb" onclick="setF('pending',this)">รอเช็ค</button>
+        <button class="fb" onclick="setF('done',this)">เช็คแล้ว</button>
+      </div>
+      <div class="action-btns">
+        <button class="btn-xs" onclick="exportCSV()">⬇ CSV</button>
+      </div>
+    </div>
+
+    <div class="card-grid" id="grid"></div>
+  </main>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="overlay" id="del-modal">
+  <div class="modal">
+    <h3>🗑 ลบรายการนี้?</h3>
+    <p>ต้องการลบสินค้า "<span id="del-name"></span>" ออกจากรายการ? การกระทำนี้ไม่สามารถย้อนกลับได้</p>
+    <div class="modal-btns">
+      <button class="btn-cancel2" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-del" onclick="confirmDel()">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<!-- FOOTER BAR -->
+<div class="footer-bar">
+  <div class="fb-stat"><div class="fb-num" id="fb-total">0</div><div class="fb-lbl">ทั้งหมด</div></div>
+  <div class="divv"></div>
+  <div class="fb-stat"><div class="fb-num green" id="fb-done">0</div><div class="fb-lbl">เช็คแล้ว</div></div>
+  <div class="divv"></div>
+  <div class="fb-stat"><div class="fb-num amber" id="fb-left">0</div><div class="fb-lbl">รอเช็ค</div></div>
+  <div class="fb-progress"><div class="fb-fill" id="fb-fill" style="width:0%"></div></div>
+  <div class="fb-pct" id="fb-pct">0%</div>
+</div>
+
+<script>
+/* ── State ── */
+let items = [];
+let nextId = 1;
+let filterMode = 'all';
+let pendingDelId = null;
+let currentImg = null; // base64
+
+/* ── Persist ── */
+function save() { localStorage.setItem('scheck_v1', JSON.stringify({ items, nextId })); }
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem('scheck_v1') || 'null');
+    if (d) { items = d.items || []; nextId = d.nextId || 1; }
+  } catch(e) {}
+}
+
+/* ── Image handling ── */
+function triggerUpload() {
+  document.getElementById('file-input').click();
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    currentImg = ev.target.result;
+    document.getElementById('preview-img').src = currentImg;
+    document.getElementById('upload-zone').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImg(e) {
+  e.stopPropagation();
+  currentImg = null;
+  document.getElementById('preview-img').src = '';
+  document.getElementById('upload-zone').classList.remove('has-image');
+  document.getElementById('file-input').value = '';
+}
+
+// Drag & drop
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#0f766e'; });
+zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    currentImg = ev.target.result;
+    document.getElementById('preview-img').src = currentImg;
+    document.getElementById('upload-zone').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ── Add ── */
+function addItem() {
+  const product = document.getElementById('inp-product').value.trim();
+  const qty = parseInt(document.getElementById('inp-qty').value) || 1;
+  const unit = document.getElementById('inp-unit').value.trim() || 'ชิ้น';
+  const recipient = document.getElementById('inp-recipient').value.trim();
+  const note = document.getElementById('inp-note').value.trim();
+
+  if (!product || !recipient) {
+    toast(!product ? 'กรุณากรอกชื่อสินค้า' : 'กรุณากรอกชื่อผู้รับ', 'err');
+    return;
+  }
+
+  items.unshift({ id: nextId++, product, qty, unit, recipient, note, img: currentImg, checked: false, ts: Date.now() });
+  save(); render(); updateStats();
+  toast(`เพิ่ม "${product}" เรียบร้อย`, 'ok');
+
+  // reset form
+  document.getElementById('inp-product').value = '';
+  document.getElementById('inp-qty').value = '1';
+  document.getElementById('inp-unit').value = '';
+  document.getElementById('inp-recipient').value = '';
+  document.getElementById('inp-note').value = '';
+  clearImg({ stopPropagation: ()=>{} });
+  document.getElementById('inp-product').focus();
+}
+
+/* ── Toggle ── */
+function toggle(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  it.checked = !it.checked;
+  save(); render(); updateStats();
+  if (it.checked) toast(`✓ "${it.product}" เช็คแล้ว`, 'ok');
+}
+
+/* ── Delete ── */
+function askDel(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  pendingDelId = id;
+  document.getElementById('del-name').textContent = it.product;
+  document.getElementById('del-modal').classList.add('open');
+}
+function confirmDel() {
+  const it = items.find(i => i.id === pendingDelId);
+  items = items.filter(i => i.id !== pendingDelId);
+  pendingDelId = null;
+  save(); render(); updateStats();
+  closeModal();
+  if (it) toast(`ลบ "${it.product}" แล้ว`, 'ok');
+}
+function closeModal() {
+  document.getElementById('del-modal').classList.remove('open');
+  pendingDelId = null;
+}
+
+/* ── Filter ── */
+function setF(mode, el) {
+  filterMode = mode;
+  document.querySelectorAll('.fb').forEach(b => b.className = 'fb');
+  el.classList.add(mode === 'all' ? 'act-all' : mode === 'done' ? 'act-done' : 'act-pend');
+  render();
+}
+
+/* ── Render Cards ── */
+function render() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  let filtered = items.filter(it => {
+    if (filterMode === 'done' && !it.checked) return false;
+    if (filterMode === 'pending' && it.checked) return false;
+    if (q) return it.product.toLowerCase().includes(q) || it.recipient.toLowerCase().includes(q) || (it.note||'').toLowerCase().includes(q);
+    return true;
+  });
+
+  const grid = document.getElementById('grid');
+
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-big">📷</div>
+      <h3>ยังไม่มีรายการสินค้า</h3>
+      <p>เพิ่มสินค้าพร้อมรูปภาพจากแบบฟอร์มด้านซ้าย</p>
+    </div>`;
+    return;
+  }
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-big">🔍</div>
+      <h3>ไม่พบรายการ</h3>
+      <p>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(it => `
+    <div class="p-card ${it.checked ? 'done-card' : ''}">
+      <div class="card-img-wrap">
+        ${it.img
+          ? `<img src="${it.img}" alt="${it.product}">`
+          : `<div class="no-img-placeholder">📦<span>ไม่มีรูปภาพ</span></div>`}
+        <div class="card-check-overlay ${it.checked ? 'checked' : ''}" onclick="toggle(${it.id})">
+          <svg width="12" height="9" viewBox="0 0 13 10" fill="none">
+            <polyline points="1.5,5 5,8.5 11.5,1.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="ribbon ${it.checked ? 'done' : 'pending'}">${it.checked ? '✓ เช็คแล้ว' : '⏳ รอเช็ค'}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-product">${it.product}</div>
+        <div class="card-meta">
+          <div class="meta-row">
+            <span class="meta-icon">👤</span>
+            <span class="meta-val">${it.recipient}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">📦</span>
+            <span class="qty-pill">${it.qty} ${it.unit}</span>
+          </div>
+        </div>
+        <div class="note-row ${it.note ? '' : 'hidden'}">
+          <span>⚠️</span><span>${it.note}</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="icon-btn" onclick="toggle(${it.id})" title="${it.checked ? 'ยกเลิกเช็ค' : 'เช็ค'}">${it.checked ? '↩' : '✓'}</button>
+        <button class="icon-btn" onclick="askDel(${it.id})" title="ลบ">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ── Stats ── */
+function updateStats() {
+  const total = items.length;
+  const done  = items.filter(i => i.checked).length;
+  const left  = total - done;
+  const pct   = total ? Math.round(done / total * 100) : 0;
+
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-done').textContent  = done;
+  document.getElementById('s-left').textContent  = left;
+
+  document.getElementById('fb-total').textContent = total;
+  document.getElementById('fb-done').textContent  = done;
+  document.getElementById('fb-left').textContent  = left;
+  document.getElementById('fb-pct').textContent   = pct + '%';
+  document.getElementById('fb-fill').style.width  = pct + '%';
+
+  document.getElementById('h-done-lbl').textContent = `${done}/${total}`;
+  document.getElementById('h-fill').style.width      = pct + '%';
+  document.getElementById('h-pct').textContent       = pct + '%';
+}
+
+/* ── Export CSV ── */
+function exportCSV() {
+  if (!items.length) { toast('ไม่มีรายการ', 'err'); return; }
+  const hdr = 'ลำดับ,ชื่อสินค้า,จำนวน,หน่วย,ผู้รับสินค้า,หมายเหตุ,สถานะ';
+  const rows = items.map((it, i) =>
+    [i+1, `"${it.product}"`, it.qty, it.unit, `"${it.recipient}"`, `"${it.note||''}"`,
+     it.checked ? 'เช็คแล้ว' : 'รอเช็ค'].join(',')
+  );
+  const csv = '\uFEFF' + [hdr, ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'checklist_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  toast('Export CSV สำเร็จ', 'ok');
+}
+
+/* ── Toast ── */
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = `toast ${type === 'err' ? 'err' : ''}`;
+  el.innerHTML = `<span>${type === 'err' ? '❌' : '✅'}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+/* ── Keyboard ── */
+['inp-product','inp-qty','inp-unit','inp-recipient','inp-note'].forEach(id => {
+  document.getElementById(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+});
+document.getElementById('del-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+/* ── Init ── */
+load();
+render();
+updateStats();
+</script>
+</body>
+</html>
